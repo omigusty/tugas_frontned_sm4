@@ -1,36 +1,48 @@
 import React, { useState, useEffect } from "react";
 import { FormEditBook, HeaderAdmin, Sidebar } from "../../components/index";
+import Axios from "axios";
 
 export default function BookData() {
   const [books, setBooks] = useState([]);
+  const [image, setImage] = useState("");
   const [bookTitle, setBookTitle] = useState("");
   const [ISBN, setISBN] = useState("");
   const [description, setDescription] = useState("");
   const [editBook, setEditBook] = useState("");
 
   useEffect(() => {
-    fetchBooks();
+    Axios.get("http://localhost:3000/api/book")
+      .then((result) => {
+        console.log("Data Api: ", result.data);
+        setBooks(result.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
 
-  const fetchBooks = async () => {
-    const response = await fetch("http://localhost:3000/api/book");
-    setBooks(await response.json());
-  };
+  const addBook = () => {
+    const data = new FormData();
+    data.append("image", image);
+    data.append("bookTitle", bookTitle);
+    data.append("ISBN", ISBN);
+    data.append("description", description);
 
-  const addBook = async () => {
-    const response = await fetch("http://localhost:3000/api/book", {
-      method: "POST",
+    Axios.post("http://localhost:3000/api/book", data, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
-      body: JSON.stringify({ bookTitle, ISBN, description }),
-    });
-    const data = await response.json();
-    setBooks([...books, data]);
+    })
+      .then((res) => {
+        console.log("Post success", res);
+      })
+      .catch((err) => {
+        console.log("Post errorr", err);
+      });
   };
 
   const updateBook = async (id, newBook) => {
-    const response = await fetch(`http://localhost:3000/api/book/${id}`, {
+    const response = await fetch(`http://localhost:3000/v1/book/data/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newBook),
@@ -48,8 +60,11 @@ export default function BookData() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    window.location.reload(false);
     addBook();
+    setImage("");
     setBookTitle("");
+    setISBN("");
     setDescription("");
     setISBN("");
   };
@@ -73,49 +88,58 @@ export default function BookData() {
             <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
               <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
                 <div className="w-full">
-                  <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
                     Tambah Data Buku
                   </h2>
-                  <form onSubmit={handleSubmit}>
-                    <div class="gap-3 flex items-center">
-                      <div class="w-full">
-                        <input
-                          type="text"
-                          value={bookTitle}
-                          onChange={(event) => setBookTitle(event.target.value)}
-                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="Judul Buku"
-                        />
-                      </div>
-                      <div class="w-full">
-                        <input
-                          type="text"
-                          value={ISBN}
-                          onChange={(event) => setISBN(event.target.value)}
-                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="ISBN"
-                        />
-                      </div>
-                      <div class="w-full">
-                        <input
-                          type="text"
-                          value={description}
-                          onChange={(event) =>
-                            setDescription(event.target.value)
-                          }
-                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="Description"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800"
-                      >
-                        Tambah
-                      </button>
+
+                  <div className="gap-3 flex items-center">
+                    <div class="w-full">
+                      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Foto mahasiswa
+                      </label>
+                      <input
+                        type="file"
+                        // value={image}
+                        onChange={(event) => setImage(event.target.files[0])}
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        required
+                      />
                     </div>
-                  </form>
-                  <h2 class="mt-8 text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="w-full">
+                      <input
+                        type="text"
+                        value={bookTitle}
+                        onChange={(event) => setBookTitle(event.target.value)}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        placeholder="Judul Buku"
+                      />
+                    </div>
+                    <div className="w-full">
+                      <input
+                        type="text"
+                        value={ISBN}
+                        onChange={(event) => setISBN(event.target.value)}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        placeholder="ISBN"
+                      />
+                    </div>
+                    <div className="w-full">
+                      <input
+                        type="text"
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        placeholder="Description"
+                      />
+                    </div>
+                    <button
+                      onClick={handleSubmit}
+                      className="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800"
+                    >
+                      Tambah
+                    </button>
+                  </div>
+                  <h2 className="mt-8 text-xl font-bold text-gray-900 dark:text-white">
                     Data Buku
                   </h2>
                 </div>
@@ -124,6 +148,9 @@ export default function BookData() {
                 <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                   <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
+                      <th scope="col" className="px-4 py-4">
+                        Foto
+                      </th>
                       <th scope="col" className="px-4 py-4">
                         Judul Buku
                       </th>
@@ -141,6 +168,13 @@ export default function BookData() {
                   <tbody>
                     {books.map((book) => (
                       <tr className="border-b dark:border-gray-700">
+                        <td className="px-4 py-3">
+                          <img
+                            class="w-10 h-10 rounded object-cover"
+                            src={`http://localhost:3000/${book.image}`}
+                            alt={book.bookTitle}
+                          />
+                        </td>
                         <th
                           scope="row"
                           className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"

@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Navbar, Footer, TextHeader, CardBook } from "../../components";
+import Axios from "axios";
 
 export default function BookPage() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    fetchBooks();
+    Axios.get("http://localhost:3000/api/book")
+      .then((result) => {
+        console.log("Data Api: ", result.data);
+        setBooks(result.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
-
-  const fetchBooks = async () => {
-    const response = await fetch("http://localhost:3000/api/book");
-    setBooks(await response.json());
-  };
 
   return (
     <>
@@ -26,6 +29,7 @@ export default function BookPage() {
           <div class="grid gap-8 lg:grid-cols-3">
             {books.map((book) => (
               <CardBook
+                image={book.image}
                 ISBN={book.ISBN}
                 bookTitle={book.bookTitle}
                 description={book.description}

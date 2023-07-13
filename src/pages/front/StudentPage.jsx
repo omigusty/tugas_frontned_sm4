@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { Navbar, TextHeader, Footer, CardStudent } from "../../components";
+import Axios from "axios";
 
 export default function StudentPage() {
   const [students, setStudents] = useState([]);
 
   useEffect(() => {
-    fetchStudents();
+    Axios.get("http://localhost:3000/api/student")
+      .then((result) => {
+        console.log("Data Api: ", result.data);
+        setStudents(result.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
 
-  const fetchStudents = async () => {
-    const response = await fetch("http://localhost:3000/api/student");
-    setStudents(await response.json());
-  };
   return (
     <>
       <Navbar />
@@ -25,6 +29,7 @@ export default function StudentPage() {
           <div class="grid gap-8 lg:grid-cols-3">
             {students.map((student) => (
               <CardStudent
+                picture={student.image}
                 nama={student.nama}
                 NIM={student.NIM}
                 kelas={student.kelas}

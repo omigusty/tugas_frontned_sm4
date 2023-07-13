@@ -13,13 +13,16 @@ export default function Register() {
     event.preventDefault();
     const userData = { username, password };
     try {
-      const response = await fetch("http://localhost:3000/api/user/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/authentication/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        }
+      );
       const data = await response.json();
       console.log(`Data user registration: ${data}`);
 

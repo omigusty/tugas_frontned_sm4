@@ -1,41 +1,57 @@
 import React, { useState, useEffect } from "react";
 import { FormEditStudent, HeaderAdmin, Sidebar } from "../../components/index";
+import Axios from "axios";
 
 export default function StudentData() {
   const [students, setStudents] = useState([]);
   const [NIM, setNIM] = useState("");
   const [nama, setNama] = useState("");
+  const [image, setImage] = useState("");
   const [kelas, setKelas] = useState("");
   const [jurusan, setJurusan] = useState("");
   const [editStudent, setEditStudent] = useState("");
 
   useEffect(() => {
-    fetchStudents();
+    Axios.get("http://localhost:3000/api/student")
+      .then((result) => {
+        console.log("Data Api: ", result.data);
+        setStudents(result.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
 
-  const fetchStudents = async () => {
-    const response = await fetch("http://localhost:3000/api/student");
-    setStudents(await response.json());
-  };
+  const addStudent = () => {
+    const data = new FormData();
+    data.append("NIM", NIM);
+    data.append("nama", nama);
+    data.append("image", image);
+    data.append("kelas", kelas);
+    data.append("jurusan", jurusan);
 
-  const addStudent = async () => {
-    const response = await fetch("http://localhost:3000/api/student", {
-      method: "POST",
+    Axios.post("http://localhost:3000/api/student", data, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
-      body: JSON.stringify({ NIM, nama, kelas, jurusan }),
-    });
-    const data = await response.json();
-    setStudents([...students, data]);
+    })
+      .then((res) => {
+        console.log("Post success", res);
+      })
+      .catch((err) => {
+        console.log("Post errorr", err);
+      });
   };
 
   const updateStudent = async (id, newStudent) => {
-    const response = await fetch(`http://localhost:3000/api/student/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newStudent),
-    });
+    const response = await fetch(
+      `http://localhost:3000/v1/student/data/${id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newStudent),
+      }
+    );
     const data = await response.json();
     setStudents(
       students.map((student) => (student._id === id ? { ...data } : student))
@@ -43,7 +59,7 @@ export default function StudentData() {
   };
 
   const deleteStudent = async (id) => {
-    await fetch(`http://localhost:3000/api/student${id}`, {
+    await fetch(`http://localhost:3000/api/student/${id}`, {
       method: "DELETE",
     });
     setStudents(students.filter((student) => student._id !== id));
@@ -51,9 +67,11 @@ export default function StudentData() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    window.location.reload(false);
     addStudent();
     setNIM("");
     setNama("");
+    setImage("");
     setKelas("");
     setJurusan("");
   };
@@ -79,52 +97,76 @@ export default function StudentData() {
                   <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
                     Tambah Data Mahasiswa
                   </h2>
-                  <form onSubmit={handleSubmit}>
-                    <div class="gap-3 flex items-center">
-                      <div class="w-full">
-                        <input
-                          type="text"
-                          value={NIM}
-                          onChange={(event) => setNIM(event.target.value)}
-                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="NIM"
-                        />
-                      </div>
-                      <div class="w-full">
-                        <input
-                          type="text"
-                          value={nama}
-                          onChange={(event) => setNama(event.target.value)}
-                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="Nama"
-                        />
-                      </div>
-                      <div class="w-full">
-                        <input
-                          type="text"
-                          value={kelas}
-                          onChange={(event) => setKelas(event.target.value)}
-                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="Kelas"
-                        />
-                      </div>
-                      <div class="w-full">
-                        <input
-                          type="text"
-                          value={jurusan}
-                          onChange={(event) => setJurusan(event.target.value)}
-                          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="Jurusan"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800"
-                      >
-                        Tambah
-                      </button>
+                  {/* <form onSubmit={handleSubmit}> */}
+                  <div class="gap-3 flex items-end">
+                    <div class="w-full">
+                      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Foto mahasiswa
+                      </label>
+                      <input
+                        type="file"
+                        // value={image}
+                        onChange={(event) => setImage(event.target.files[0])}
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        required
+                      />
                     </div>
-                  </form>
+                    <div class="w-full">
+                      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        NIM
+                      </label>
+                      <input
+                        type="number"
+                        value={NIM}
+                        onChange={(event) => setNIM(event.target.value)}
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        required
+                      />
+                    </div>
+                    <div class="w-full">
+                      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Nama
+                      </label>
+                      <input
+                        type="text"
+                        value={nama}
+                        onChange={(event) => setNama(event.target.value)}
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        required
+                      />
+                    </div>
+                    <div class="w-full">
+                      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Kelas
+                      </label>
+                      <input
+                        type="text"
+                        value={kelas}
+                        onChange={(event) => setKelas(event.target.value)}
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        required
+                      />
+                    </div>
+                    <div class="w-full">
+                      <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Jurusan
+                      </label>
+                      <input
+                        type="text"
+                        value={jurusan}
+                        onChange={(event) => setJurusan(event.target.value)}
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                        required
+                      />
+                    </div>
+                    <button
+                      onClick={handleSubmit}
+                      class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800"
+                    >
+                      Tambah
+                    </button>
+                  </div>
+                  {/* </form> */}
                   <h2 class="mt-8 text-xl font-bold text-gray-900 dark:text-white">
                     Data Mahasiswa
                   </h2>
@@ -134,6 +176,9 @@ export default function StudentData() {
                 <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                   <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
+                      <th scope="col" className="px-4 py-4">
+                        Foto
+                      </th>
                       <th scope="col" className="px-4 py-4">
                         NIM
                       </th>
@@ -154,12 +199,16 @@ export default function StudentData() {
                   <tbody>
                     {students.map((student) => (
                       <tr className="border-b dark:border-gray-700">
-                        <th
-                          scope="row"
-                          className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                        >
+                        <td className="px-4 py-3">
+                          <img
+                            class="w-10 h-10 rounded object-cover"
+                            src={`http://localhost:3000/${student.image}`}
+                            alt={student.nama}
+                          />
+                        </td>
+                        <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                           {student.NIM}
-                        </th>
+                        </td>
                         <td className="px-4 py-3">{student.nama}</td>
                         <td className="px-4 py-3 max-w-[20rem]">
                           {student.kelas}

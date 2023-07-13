@@ -32,7 +32,7 @@ export default function FormEditStudent({ student, updateStudent }) {
               NIM
             </label>
             <input
-              type="text"
+              type="number"
               name="NIM"
               value={editedStudent.NIM}
               onChange={handleInputChange}
